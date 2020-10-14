@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ssy.trainorder.mapper.UserMapper">
+    
+    <select id="findAllUser" resultType="User">
+        select * from user;
+    </select>
+
+    <select id="findUserInfo" resultType="User">
+        select * from user where user_phone=#{user_phone};
+    </select>
+
+    <select id="findUserLogin" resultType="String">
+        select password from user where user_phone=#{user_phone};
+    </select>
+
+    <insert id="insertUser" parameterType="User">
+        insert into user values (#{user_phone},#{user_name},#{password},#{person_id},#{real_name},#{email});
+    </insert>
+
+    <update id="updateUser" parameterType="User">
+        update user set user_name=#{user_name},password=#{password},person_id=#{person_id},real_name=#{real_name},email=#{email} where user_phone=#{user_phone};
+    </update>
+
+    <delete id="deleteUser" parameterType="String">
+        delete from user where user_phone=#{user_phone};
+    </delete>
+
+</mapper>

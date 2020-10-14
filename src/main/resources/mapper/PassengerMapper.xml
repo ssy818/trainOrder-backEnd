@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ssy.trainorder.mapper.PassengerMapper">
+
+    <select id="findAllPassenger" resultType="Passenger">
+        select * from passenger;
+    </select>
+
+    <select id="findPassengerInfo" resultType="Passenger">
+        select * from passenger where person_id=#{person_id};
+    </select>
+
+    <select id="findUserPassengerResult" resultType="UserPassengerResult">
+        select passenger.person_id,real_name,passenger_phone from passenger,user_passenger where passenger.person_id=user_passenger.person_id and user_phone=#{user_phone};
+    </select>
+
+    <insert id="insertPassenger" parameterType="Passenger">
+        insert into passenger values (#{person_id},#{real_name});
+    </insert>
+
+    <update id="updatePassenger" parameterType="Passenger">
+        update passenger set real_name=#{real_name} where person_id=#{person_id};
+    </update>
+
+    <delete id="deletePassenger" parameterType="String">
+        delete from passenger where person_id=#{person_id};
+    </delete>
+
+</mapper>

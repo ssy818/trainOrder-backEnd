@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ssy.trainorder.mapper.TicketQueryMapper">
+
+    <select id="findDirectTicket" resultType="DirectTicketResult">
+        select A.train_no as train_no,A.station_name as start_station_name,B.station_name as end_station_name,A.leave_time as start_time,B.arrive_time as end_time,
+               concat(timestampdiff(minute,str_to_date(A.leave_time,'%H:%i'),str_to_date(B.arrive_time,'%H:%i'))+24*60*(B.arrive_day-A.leave_day),'') as last_time,
+               '--' as premier_seat,'--' as first_seat,'--' as second_seat,'--' as soft_sleeper,'--' as hard_sleeper,'--' as hard_seat
+        from train_station as A,train_station as B
+        where A.train_no=B.train_no and A.stop_no &lt; B.stop_no
+        and (A.city_name=#{start_place} or A.station_name=#{start_place}) and (B.city_name=#{end_place} or B.station_name=#{end_place})
+        and A.train_no not in (select train_no from train_status where train_status='停运' and depart_date=date_format(date_sub(str_to_date(#{start_date},'%Y-%m-%d'),interval A.leave_day day),'%Y-%m-%d'));
+    </select>
+
+    <select id="findDepartDate" resultType="String">
+        select date_format(date_sub(str_to_date(#{start_date},'%Y-%m-%d'),interval leave_day day),'%Y-%m-%d')
+        from train_station where train_no=#{train_no} and station_name=#{start_station_name};
+    </select>
+
+    <select id="findSeatPrice" resultType="String">
+        select concat('￥',(D.price-C.price)) as premier_seat_price
+        from train_station as A,train_station as B,train_station_seat as C,train_station_seat as D
+        where A.train_no=#{train_no} and B.train_no=#{train_no} and A.station_name=#{start_station_name} and B.station_name=#{end_station_name}
+        and C.stop_no=A.stop_no and D.stop_no=B.stop_no and C.seat_type=#{seat_type} and D.seat_type=#{seat_type};
+    </select>
+
+    <select id="findSeatRemaining" resultType="Integer">
+        select ifnull(number-(
+            select count(A.order_id) from `order` as A,train_station as B,train_station as C
+            where A.train_no=#{train_no} and A.depart_date=#{depart_date}
+            and B.train_no=#{train_no} and B.station_name=#{start_station_name} and C.train_no=#{train_no} and C.station_name=#{end_station_name}
+            and ((A.start_stop_no &lt;= B.stop_no and A.end_stop_no &gt;= C.stop_no) or (A.start_stop_no &gt;= B.stop_no and A.end_stop_no &lt;= C.stop_no)
+                or (A.start_stop_no &lt;= B.stop_no and A.end_stop_no &gt; B.stop_no) or (A.start_stop_no &lt; C.stop_no and A.end_stop_no &gt;= C.stop_no))
+            and A.order_status &lt;&gt; '已退票' and A.order_status &lt;&gt; '已改签'),-1) as remaining
+        from train_seat where train_no=#{train_no} and seat_type=#{seat_type};
+    </select>
+
+</mapper>
