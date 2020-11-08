@@ -4,37 +4,78 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ssy.trainorder.mapper.TicketQueryMapper">
 
-    <select id="findDirectTicket" resultType="DirectTicketResult">
-        select A.train_no as train_no,A.station_name as start_station_name,B.station_name as end_station_name,A.leave_time as start_time,B.arrive_time as end_time,
-               concat(timestampdiff(minute,str_to_date(A.leave_time,'%H:%i'),str_to_date(B.arrive_time,'%H:%i'))+24*60*(B.arrive_day-A.leave_day),'') as last_time,
-               '--' as premier_seat,'--' as first_seat,'--' as second_seat,'--' as soft_sleeper,'--' as hard_sleeper,'--' as hard_seat
+    <select id="findDirectTicketInfo" resultType="TicketInfo">
+        select A.train_no as train_no,A.station_name as start_station_name,B.station_name as end_station_name,A.leave_time as start_time,B.arrive_time as end_time
         from train_station as A,train_station as B
         where A.train_no=B.train_no and A.stop_no &lt; B.stop_no
         and (A.city_name=#{start_place} or A.station_name=#{start_place}) and (B.city_name=#{end_place} or B.station_name=#{end_place})
         and A.train_no not in (select train_no from train_status where train_status='停运' and depart_date=date_format(date_sub(str_to_date(#{start_date},'%Y-%m-%d'),interval A.leave_day day),'%Y-%m-%d'));
     </select>
 
+    <select id="findIndirectTicketResult" resultType="IndirectTicketResult">
+        select A.station_name as start_station_name,A.train_no as train_no_1,A.leave_time as start_time_1,
+               B.arrive_time as end_time_1,B.station_name as mid_station_name,
+               concat(timestampdiff(minute,str_to_date(B.arrive_time,'%H:%i'),str_to_date(C.leave_time,'%H:%i')),'') as mid_time,
+               C.train_no as train_no_2,C.leave_time as start_time_2,D.arrive_time as end_time_2,D.station_name as end_station_name,
+               concat(timestampdiff(minute,str_to_date(A.leave_time,'%H:%i'),str_to_date(D.arrive_time,'%H:%i'))+24*60*(B.arrive_day-A.leave_day+D.arrive_day-C.leave_day)+
+                      if(timestampdiff(minute,str_to_date(B.arrive_time,'%H:%i'),str_to_date(C.leave_time,'%H:%i')) &lt; 0,1,0),'') as last_time
+        from train_station as A,train_station as B,train_station as C,train_station as D
+        where A.train_no=B.train_no and (A.city_name=#{start_place} or A.station_name=#{start_place})
+        and A.stop_no &lt; B.stop_no and B.station_name=C.station_name and B.train_no &lt;&gt; C.train_no
+        and C.train_no=D.train_no and (D.city_name=#{end_place} or D.station_name=#{end_place}) and C.stop_no &lt; D.stop_no
+        and (timestampdiff(minute,str_to_date(B.arrive_time,'%H:%i'),str_to_date(C.leave_time,'%H:%i')) between 40 and 120
+                 or timestampdiff(minute,str_to_date(B.arrive_time,'%H:%i'),str_to_date(C.leave_time,'%H:%i'))+24*60 &lt; 120)
+        and A.train_no not in (select train_no from train_status where train_status='停运' and depart_date=date_format(date_sub(str_to_date(#{start_date},'%Y-%m-%d'),interval A.leave_day day),'%Y-%m-%d'))
+        and C.train_no not in
+            (select train_no from train_status
+             where train_status='停运'
+             and depart_date=
+                 date_format(date_sub(date_add(str_to_date(#{start_date},'%Y-%m-%d'),interval B.arrive_day-A.leave_day+if(timestampdiff(minute,str_to_date(B.arrive_time,'%H:%i'),str_to_date(C.leave_time,'%H:%i')) &lt; 0,1,0) day),interval C.leave_day day),'%Y-%m-%d'))
+    </select>
+    
+    <select id="findLastTime" resultType="Integer">
+        select timestampdiff(minute,str_to_date(A.leave_time,'%H:%i'),str_to_date(B.arrive_time,'%H:%i'))+24*60*(B.arrive_day-A.leave_day) as last_time
+        from train_station as A,train_station as B
+        where A.train_no=B.train_no and A.station_name=#{start_station_name} and B.station_name=#{end_station_name};
+    </select>
+
     <select id="findDepartDate" resultType="String">
-        select date_format(date_sub(str_to_date(#{start_date},'%Y-%m-%d'),interval leave_day day),'%Y-%m-%d')
+        select date_format(date_sub(str_to_date(#{start_date},'%Y-%m-%d'),interval leave_day day),'%Y-%m-%d') as depart_date
         from train_station where train_no=#{train_no} and station_name=#{start_station_name};
     </select>
 
     <select id="findSeatPrice" resultType="String">
-        select concat('￥',(D.price-C.price)) as premier_seat_price
+        select concat('￥',(D.price-C.price)) as seat_price
         from train_station as A,train_station as B,train_station_seat as C,train_station_seat as D
         where A.train_no=#{train_no} and B.train_no=#{train_no} and A.station_name=#{start_station_name} and B.station_name=#{end_station_name}
-        and C.stop_no=A.stop_no and D.stop_no=B.stop_no and C.seat_type=#{seat_type} and D.seat_type=#{seat_type};
+        and C.train_no=#{train_no} and D.train_no=#{train_no} and C.stop_no=A.stop_no and D.stop_no=B.stop_no and C.seat_type=#{seat_type} and D.seat_type=#{seat_type};
     </select>
 
     <select id="findSeatRemaining" resultType="Integer">
         select ifnull(number-(
             select count(A.order_id) from `order` as A,train_station as B,train_station as C
-            where A.train_no=#{train_no} and A.depart_date=#{depart_date}
+            where A.train_no=#{train_no} and A.depart_date=#{depart_date} and A.carriage_no between start_carriage_no and end_carriage_no
             and B.train_no=#{train_no} and B.station_name=#{start_station_name} and C.train_no=#{train_no} and C.station_name=#{end_station_name}
             and ((A.start_stop_no &lt;= B.stop_no and A.end_stop_no &gt;= C.stop_no) or (A.start_stop_no &gt;= B.stop_no and A.end_stop_no &lt;= C.stop_no)
                 or (A.start_stop_no &lt;= B.stop_no and A.end_stop_no &gt; B.stop_no) or (A.start_stop_no &lt; C.stop_no and A.end_stop_no &gt;= C.stop_no))
             and A.order_status &lt;&gt; '已退票' and A.order_status &lt;&gt; '已改签'),-1) as remaining
         from train_seat where train_no=#{train_no} and seat_type=#{seat_type};
+    </select>
+
+    <select id="findTrain" resultType="String">
+        select train_no from train_info where train_no=#{train_no};
+    </select>
+
+    <select id="findCity" resultType="String">
+        select min(city_name) from train_station where station_name=#{station_name};
+    </select>
+
+    <select id="findTrainStationResult" resultType="TrainStationResult">
+        select A.leave_time as leave_time,A.station_name as station_name,A.arrive_time as arrive_time,
+               if(B.leave_time is null,'0',concat(timestampdiff(minute,str_to_date(B.leave_time,'%H:%i'),str_to_date(A.arrive_time,'%H:%i')),'')) as last_time
+        from train_station as A left outer join train_station as B
+        on A.stop_no-1=B.stop_no and A.train_no=B.train_no where A.train_no=#{train_no}
+        and A.train_no not in (select train_no from train_status where train_status='停运' and depart_date=#{depart_date});
     </select>
 
 </mapper>

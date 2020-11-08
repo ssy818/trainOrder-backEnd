@@ -16,6 +16,21 @@ public class DirectTicketResult {
     private String hard_sleeper;
     private String hard_seat;
 
+    public DirectTicketResult(String train_no, String start_station_name, String end_station_name, String start_time, String end_time) {
+        this.train_no = train_no;
+        this.start_station_name = start_station_name;
+        this.end_station_name = end_station_name;
+        this.start_time = start_time;
+        this.end_time = end_time;
+        this.last_time = "";
+        this.premier_seat = "--";
+        this.first_seat = "--";
+        this.second_seat = "--";
+        this.soft_sleeper = "--";
+        this.hard_sleeper = "--";
+        this.hard_seat = "--";
+    }
+
     public DirectTicketResult(String train_no, String start_station_name, String end_station_name, String start_time, String end_time, String last_time, String premier_seat, String first_seat, String second_seat, String soft_sleeper, String hard_sleeper, String hard_seat) {
         this.train_no = train_no;
         this.start_station_name = start_station_name;

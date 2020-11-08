@@ -1,6 +1,7 @@
 package com.ssy.trainorder.entity;
 
 import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Result<T> {
     private int status;
@@ -16,6 +17,7 @@ public class Result<T> {
         this.data = data;
     }
 
+    @JsonProperty("status")
     public int getStatus() {
         return status;
     }
@@ -24,7 +26,7 @@ public class Result<T> {
         this.status = status;
     }
 
-
+    @JsonProperty("msg")
     public String getMsg() {
         return msg;
     }
@@ -33,6 +35,7 @@ public class Result<T> {
         this.msg = msg;
     }
 
+    @JsonProperty("data")
     public T getData() {
         return data;
     }

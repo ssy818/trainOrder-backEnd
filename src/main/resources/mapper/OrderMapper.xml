@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ssy.trainorder.mapper.OrderMapper">
+
+    <select id="findStartCarriageNo" resultType="Integer">
+        select start_carriage_no from train_seat where train_no=#{train_no} and seat_type=#{seat_type};
+    </select>
+
+    <select id="findEndCarriageNo" resultType="Integer">
+        select end_carriage_no from train_seat where train_no=#{train_no} and seat_type=#{seat_type};
+    </select>
+
+    <select id="findCarriageSeatNumber" resultType="Integer">
+        select number/(end_carriage_no-start_carriage_no+1) from train_seat where train_no=#{train_no} and seat_type=#{seat_type};
+    </select>
+
+    <select id="findCarriageSeatOrdered" resultType="Integer">
+        select A.seat_no
+        from `order` as A,train_station as B,train_station as C
+        where A.train_no=#{train_no} and A.carriage_no=#{carriage_no} and A.depart_date=#{depart_date}
+        and B.train_no=#{train_no} and B.station_name=#{start_station_name} and C.train_no=#{train_no} and C.station_name=#{end_station_name}
+        and ((A.start_stop_no &lt;= B.stop_no and A.end_stop_no &gt;= C.stop_no) or (A.start_stop_no &gt;= B.stop_no and A.end_stop_no &lt;= C.stop_no)
+            or (A.start_stop_no &lt;= B.stop_no and A.end_stop_no &gt; B.stop_no) or (A.start_stop_no &lt; C.stop_no and A.end_stop_no &gt;= C.stop_no))
+        and A.order_status &lt;&gt; '已退票' and A.order_status &lt;&gt; '已改签';
+    </select>
+
+    <select id="findStartStopNo" resultType="Integer">
+        select stop_no from train_station where train_no=#{train_no} and station_name=#{start_station_name};
+    </select>
+
+    <select id="findEndStopNo" resultType="Integer">
+        select stop_no from train_station where train_no=#{train_no} and station_name=#{end_station_name};
+    </select>
+
+    <select id="findStartStationName" resultType="String">
+        select station_name from train_station where train_no=#{train_no} and stop_no=#{start_stop_no};
+    </select>
+
+    <select id="findEndStationName" resultType="String">
+        select station_name from train_station where train_no=#{train_no} and stop_no=#{end_stop_no};
+    </select>
+
+    <select id="findStartTime" resultType="String">
+        select leave_time from train_station where train_no=#{train_no} and stop_no=#{start_stop_no};
+    </select>
+
+    <select id="findEndTime" resultType="String">
+        select arrive_time from train_station where train_no=#{train_no} and stop_no=#{end_stop_no};
+    </select>
+
+    <select id="findStartDate" resultType="String">
+        select date_format(date_add(str_to_date(#{depart_date},'%Y-%m-%d'),interval leave_day day),'%Y-%m-%d') as depart_date
+        from train_station where train_no=#{train_no} and station_name=#{start_station_name};
+    </select>
+
+    <select id="findSeatType" resultType="String">
+        select seat_type from train_seat where train_no=#{train_no} and start_carriage_no &lt;= #{carriage_no} and end_carriage_no &gt;= #{carriage_no};
+    </select>
+
+    <select id="findOrderId" resultType="Integer">
+        select ifnull(max(order_id)+1,1) from `order`;
+    </select>
+
+    <select id="findPassengerOrder" resultType="Order">
+        select * from `order` where train_no=#{train_no} and depart_date=#{depart_date} and user_phone=#{user_phone} and person_id=#{person_id} and (order_status='已支付' or order_status='未支付');
+    </select>
+
+    <select id="findAllOrder" resultType="Order">
+        select * from `order` where user_phone=#{user_phone};
+    </select>
+
+    <select id="findUnpaidOrder" resultType="Order">
+        select * from `order` where user_phone=#{user_phone} and order_status='未支付';
+    </select>
+
+    <select id="findNotTravelOrder" resultType="Order">
+        select * from `order` as A where user_phone=#{user_phone} and order_status='已支付' and str_to_date(current_timestamp(),'%Y-%m-%d %H:%i:%s') &lt; (
+            select concat(date_format(date_add(str_to_date(A.depart_date,'%Y-%m-%d'),interval B.leave_day day),'%Y-%m-%d'),concat(' ',B.leave_time))
+            from train_station as B where B.train_no=A.train_no and B.stop_no=A.start_stop_no);
+    </select>
+
+    <select id="findHistoryOrder" resultType="Order">
+        select * from `order` as A where A.user_phone=#{user_phone} and A.order_status='已支付' and str_to_date(current_timestamp(),'%Y-%m-%d %H:%i:%s') &gt;= (
+            select concat(date_format(date_add(str_to_date(A.depart_date,'%Y-%m-%d'),interval B.leave_day day),'%Y-%m-%d'),concat(' ',B.leave_time))
+            from train_station as B where B.train_no=A.train_no and B.stop_no=A.start_stop_no);
+    </select>
+
+    <select id="findChangeableOrder" resultType="Order">
+        select * from `order` as A where A.user_phone=#{user_phone} and A.order_status='已支付' and str_to_date(date_sub(current_timestamp(),interval 2 hour),'%Y-%m-%d %H:%i:%s') &lt;= (
+            select concat(date_format(date_add(str_to_date(A.depart_date,'%Y-%m-%d'),interval B.leave_day day),'%Y-%m-%d'),concat(' ',B.leave_time))
+            from train_station as B where B.train_no=A.train_no and B.stop_no=A.start_stop_no) and A.order_id not in(
+                select replace(C.order_status,'已改签','')+0 from `order` as C where C.order_status like '已改签%');
+    </select>
+
+    <select id="findRefundableOrder" resultType="Order">
+        select * from `order` as A where A.user_phone=#{user_phone} and A.order_status='已支付' and str_to_date(date_sub(current_timestamp(),interval 2 hour),'%Y-%m-%d %H:%i:%s') &lt;= (
+            select concat(date_format(date_add(str_to_date(A.depart_date,'%Y-%m-%d'),interval B.leave_day day),'%Y-%m-%d'),concat(' ',B.leave_time))
+            from train_station as B where B.train_no=A.train_no and B.stop_no=A.start_stop_no);
+    </select>
+
+    <insert id="insertOrder" parameterType="Order">
+        insert into `order` values (#{order_id},#{create_time},#{order_status},#{money},#{train_no},#{depart_date},#{start_stop_no},#{end_stop_no},#{carriage_no},#{seat_no},#{user_phone},#{person_id});
+    </insert>
+
+    <update id="updateOrder" parameterType="Map">
+        update `order` set order_status=#{order_status} where order_id=#{order_id};
+    </update>
+
+    <update id="updateExpiredOrder">
+        update `order` set order_status='已取消' where order_status='未支付' and create_time &lt; str_to_date(date_sub(current_timestamp(),interval 30 minute),'%Y-%m-%d %H:%i:%s');
+    </update>
+
+</mapper>

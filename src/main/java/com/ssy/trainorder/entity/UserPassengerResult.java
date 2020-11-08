@@ -13,6 +13,7 @@ public class UserPassengerResult {
         this.passenger_phone = passenger_phone;
     }
 
+    @JsonProperty("person_id")
     public String getPerson_id() {
         return person_id;
     }
@@ -21,6 +22,7 @@ public class UserPassengerResult {
         this.person_id = person_id;
     }
 
+    @JsonProperty("real_name")
     public String getReal_name() {
         return real_name;
     }
@@ -29,6 +31,7 @@ public class UserPassengerResult {
         this.real_name = real_name;
     }
 
+    @JsonProperty("passenger_phone")
     public String getPassenger_phone() {
         return passenger_phone;
     }

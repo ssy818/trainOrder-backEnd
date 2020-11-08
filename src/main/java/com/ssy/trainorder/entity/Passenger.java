@@ -28,12 +28,4 @@ public class Passenger {
     public void setReal_name(String real_name) {
         this.real_name = real_name;
     }
-
-    @Override
-    public String toString() {
-        return "Passenger{" +
-                "person_id='" + person_id + '\'' +
-                ", real_name='" + real_name + '\'' +
-                '}';
-    }
 }

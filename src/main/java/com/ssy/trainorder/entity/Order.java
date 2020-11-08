@@ -6,25 +6,25 @@ public class Order {
     private int order_id;
     private String create_time;
     private String order_status;
-    private double price;
-    private int leave_stop_no;
-    private int arrive_stop_no;
-    private String leave_date;
+    private double money;
     private String train_no;
+    private String depart_date;
+    private int start_stop_no;
+    private int end_stop_no;
     private int carriage_no;
-    private String seat_no;
+    private int seat_no;
     private String user_phone;
     private String person_id;
 
-    public Order(int order_id, String create_time, String order_status, double price, int leave_stop_no, int arrive_stop_no, String leave_date, String train_no, int carriage_no, String seat_no, String user_phone, String person_id) {
+    public Order(int order_id, String create_time, String order_status, double money, String train_no, String depart_date, int start_stop_no, int end_stop_no, int carriage_no, int seat_no, String user_phone, String person_id) {
         this.order_id = order_id;
         this.create_time = create_time;
         this.order_status = order_status;
-        this.price = price;
-        this.leave_stop_no = leave_stop_no;
-        this.arrive_stop_no = arrive_stop_no;
-        this.leave_date = leave_date;
+        this.money = money;
         this.train_no = train_no;
+        this.depart_date = depart_date;
+        this.start_stop_no = start_stop_no;
+        this.end_stop_no = end_stop_no;
         this.carriage_no = carriage_no;
         this.seat_no = seat_no;
         this.user_phone = user_phone;
@@ -58,40 +58,13 @@ public class Order {
         this.order_status = order_status;
     }
 
-    @JsonProperty("price")
-    public double getPrice() {
-        return price;
+    @JsonProperty("money")
+    public double getMoney() {
+        return money;
     }
 
-    public void setPrice(double price) {
-        this.price = price;
-    }
-
-    @JsonProperty("leave_stop_no")
-    public int getLeave_stop_no() {
-        return leave_stop_no;
-    }
-
-    public void setLeave_stop_no(int leave_stop_no) {
-        this.leave_stop_no = leave_stop_no;
-    }
-
-    @JsonProperty("arrive_stop_no")
-    public int getArrive_stop_no() {
-        return arrive_stop_no;
-    }
-
-    public void setArrive_stop_no(int arrive_stop_no) {
-        this.arrive_stop_no = arrive_stop_no;
-    }
-
-    @JsonProperty("leave_date")
-    public String getLeave_date() {
-        return leave_date;
-    }
-
-    public void setLeave_date(String leave_date) {
-        this.leave_date = leave_date;
+    public void setMoney(double money) {
+        this.money = money;
     }
 
     @JsonProperty("train_no")
@@ -101,6 +74,33 @@ public class Order {
 
     public void setTrain_no(String train_no) {
         this.train_no = train_no;
+    }
+
+    @JsonProperty("depart_date")
+    public String getDepart_date() {
+        return depart_date;
+    }
+
+    public void setDepart_date(String depart_date) {
+        this.depart_date = depart_date;
+    }
+
+    @JsonProperty("start_stop_no")
+    public int getStart_stop_no() {
+        return start_stop_no;
+    }
+
+    public void setStart_stop_no(int start_stop_no) {
+        this.start_stop_no = start_stop_no;
+    }
+
+    @JsonProperty("end_stop_no")
+    public int getEnd_stop_no() {
+        return end_stop_no;
+    }
+
+    public void setEnd_stop_no(int end_stop_no) {
+        this.end_stop_no = end_stop_no;
     }
 
     @JsonProperty("carriage_no")
@@ -113,11 +113,11 @@ public class Order {
     }
 
     @JsonProperty("seat_no")
-    public String getSeat_no() {
+    public int getSeat_no() {
         return seat_no;
     }
 
-    public void setSeat_no(String seat_no) {
+    public void setSeat_no(int seat_no) {
         this.seat_no = seat_no;
     }
 
@@ -139,21 +139,4 @@ public class Order {
         this.person_id = person_id;
     }
 
-    @Override
-    public String toString() {
-        return "Order{" +
-                "order_id=" + order_id +
-                ", create_time='" + create_time + '\'' +
-                ", order_status='" + order_status + '\'' +
-                ", price=" + price +
-                ", leave_stop_no=" + leave_stop_no +
-                ", arrive_stop_no=" + arrive_stop_no +
-                ", leave_date='" + leave_date + '\'' +
-                ", train_no='" + train_no + '\'' +
-                ", carriage_no=" + carriage_no +
-                ", seat_no='" + seat_no + '\'' +
-                ", user_phone='" + user_phone + '\'' +
-                ", person_id='" + person_id + '\'' +
-                '}';
-    }
 }

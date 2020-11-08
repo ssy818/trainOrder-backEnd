@@ -25,7 +25,7 @@ public class PassengerController {
     private UserPassengerService userPassengerService;
 
     @RequestMapping("findPassenger")
-    public Result findPassenger(@Validated @RequestParam String user_phone) {
+    public Result findPassenger(@RequestParam String user_phone) {
 
         List<UserPassengerResult> userPassengerResults = passengerService.findUserPassengerResult(user_phone);
 

@@ -12,6 +12,10 @@
         select * from user where user_phone=#{user_phone};
     </select>
 
+    <select id="findUserResult" resultType="UserResult">
+        select user_phone,user_name,person_id,real_name,email from user where user_phone=#{user_phone};
+    </select>
+
     <select id="findUserLogin" resultType="String">
         select password from user where user_phone=#{user_phone};
     </select>
@@ -20,8 +24,12 @@
         insert into user values (#{user_phone},#{user_name},#{password},#{person_id},#{real_name},#{email});
     </insert>
 
-    <update id="updateUser" parameterType="User">
-        update user set user_name=#{user_name},password=#{password},person_id=#{person_id},real_name=#{real_name},email=#{email} where user_phone=#{user_phone};
+    <update id="updateUserInfo" parameterType="Map">
+        update user set user_name=#{user_name},email=#{email} where user_phone=#{user_phone};
+    </update>
+
+    <update id="updateUserPwd" parameterType="Map">
+        update user set password=#{password} where user_phone=#{user_phone};
     </update>
 
     <delete id="deleteUser" parameterType="String">

@@ -13,7 +13,7 @@ public class UserPassenger {
         this.passenger_phone = passenger_phone;
     }
 
-    @JsonProperty
+    @JsonProperty("user_phone")
     public String getUser_phone() {
         return user_phone;
     }
@@ -22,7 +22,7 @@ public class UserPassenger {
         this.user_phone = user_phone;
     }
 
-    @JsonProperty
+    @JsonProperty("person_id")
     public String getPerson_id() {
         return person_id;
     }
@@ -31,21 +31,12 @@ public class UserPassenger {
         this.person_id = person_id;
     }
 
-    @JsonProperty
+    @JsonProperty("passenger_phone")
     public String getPassenger_phone() {
         return passenger_phone;
     }
 
     public void setPassenger_phone(String passenger_phone) {
         this.passenger_phone = passenger_phone;
-    }
-
-    @Override
-    public String toString() {
-        return "UserPassenger{" +
-                "user_phone='" + user_phone + '\'' +
-                ", person_id='" + person_id + '\'' +
-                ", passenger_phone='" + passenger_phone + '\'' +
-                '}';
     }
 }
